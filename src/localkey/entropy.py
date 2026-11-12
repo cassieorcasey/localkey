@@ -1,13 +1,3 @@
-"""Rumus entropi murni.
-
-Modul ini tidak menghasilkan keacakan apa pun, hanya matematika. Semua fungsi
-deterministik, jadi hasilnya bisa dicek dengan hitungan tangan di tes.
-
-Model penyerang: penyerang tahu pola, charset, dan aturan yang dipakai.
-Yang tidak ia tahu hanyalah hasil pilihan acak. Entropi = log2(jumlah
-kemungkinan keluaran yang sama-sama mungkin).
-"""
-
 from __future__ import annotations
 
 import math
