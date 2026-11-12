@@ -38,6 +38,7 @@ Password keluar lewat stdout, sedangkan angka entropi dan pesan error lewat stde
 | `-l`, `--length` | panjang password, default 20 |
 | `--no-lower`, `--no-upper`, `--no-digits`, `--no-symbols` | buang satu jenis karakter |
 | `--no-require` | jangan paksa minimal satu karakter dari tiap jenis |
+| `--exclude-ambiguous` | buang karakter yang mudah tertukar: `0 O o 1 l I \|` |
 | `--min-bits N` | ambang penolakan, default 60 |
 | `--strict` | ambang jadi 80 |
 | `--show-entropy` | cetak entropi dan labelnya |
@@ -66,6 +67,11 @@ Secara default LocalKey mewajibkan minimal satu huruf kecil, satu huruf besar, s
 
 Keacakan berasal dari `secrets.SystemRandom`, yang mengambil byte acak dari sistem operasi.
 
+## Dokumen lain
+
+- [SPEC.md](SPEC.md): spesifikasi lengkap, termasuk mode yang belum dibuat (bahasa Inggris)
+- [EXPLAIN.md](EXPLAIN.md): penjelasan kode file per file (bahasa Inggris)
+
 ## Struktur
 
 ```
@@ -74,6 +80,8 @@ src/localkey/
   generators.py  pembuat password
   cli.py         argparse dan output
 tests/
+scripts/
+  check_uniformity.py  laporan uji chi-square
 ```
 
 ## Tes
@@ -81,7 +89,14 @@ tests/
 ```bash
 pytest --cov=localkey
 ruff check .
-mypy src
+mypy src tests
+```
+
+Uji keacakan (chi-square) tidak ikut `pytest` biasa karena memakai keacakan sungguhan dan sesekali bisa gagal walau tidak ada bias. Jalankan terpisah:
+
+```bash
+pytest -m statistical
+python scripts/check_uniformity.py
 ```
 
 ## Rencana

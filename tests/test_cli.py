@@ -27,3 +27,9 @@ def test_strict_raises_threshold(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_invalid_length_returns_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["random", "-l", "0"]) == 2
+
+
+def test_exclude_ambiguous_flag(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["random", "-l", "40", "--exclude-ambiguous"]) == 0
+    out, _ = capsys.readouterr()
+    assert not set(out.strip()) & set("0Oo1lI|")

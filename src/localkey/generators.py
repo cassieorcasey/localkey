@@ -15,6 +15,9 @@ UPPERCASE = string.ascii_uppercase  # 26
 DIGITS = string.digits  # 10
 SYMBOLS = string.punctuation  # 32
 
+# Karakter yang mudah tertukar saat dibaca atau diketik ulang.
+AMBIGUOUS = frozenset("0Oo1lI|")
+
 
 class RandomSource(Protocol):
     """Apa pun yang punya `.choice(seq)`.
@@ -49,6 +52,7 @@ def random_password(
     digits: bool = True,
     symbols: bool = True,
     require_each: bool = True,
+    exclude_ambiguous: bool = False,
     rng: RandomSource | None = None,
     max_attempts: int = 10_000,
 ) -> Result:
@@ -58,6 +62,9 @@ def random_password(
     dari tiap kelas yang aktif. Caranya rejection sampling: buat kandidat
     acak, buang jika tidak lolos, ulangi. Posisi karakter wajib tetap acak,
     dan entropinya dihitung eksak dari jumlah string yang valid.
+
+    Jika `exclude_ambiguous` aktif, karakter di AMBIGUOUS dibuang dari setiap
+    kelas sebelum memilih. Entropi dihitung dari ukuran kelas setelah dibuang.
     """
     enabled = [
         cls
@@ -69,6 +76,8 @@ def random_password(
         )
         if on
     ]
+    if exclude_ambiguous:
+        enabled = [_without_ambiguous(cls) for cls in enabled]
     if not enabled:
         raise ValueError("Minimal satu jenis karakter harus aktif.")
     if length < 1:
@@ -94,6 +103,10 @@ def random_password(
     else:
         bits = entropy.charset_entropy(len(alphabet), length)
     return Result(candidate, bits)
+
+
+def _without_ambiguous(chars: str) -> str:
+    return "".join(c for c in chars if c not in AMBIGUOUS)
 
 
 def _covers_all(candidate: str, class_sets: list[frozenset[str]]) -> bool:

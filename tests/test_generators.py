@@ -1,9 +1,11 @@
 import random
+from collections.abc import Sequence
 
 import pytest
 
 from localkey import entropy
 from localkey.generators import (
+    AMBIGUOUS,
     DIGITS,
     LOWERCASE,
     SYMBOLS,
@@ -78,7 +80,7 @@ def test_invalid_arguments(kwargs: dict[str, object]) -> None:
 
 def test_max_attempts_exhausted() -> None:
     class AlwaysA:
-        def choice(self, seq: str) -> str:
+        def choice(self, seq: Sequence[str]) -> str:
             return "a"
 
     with pytest.raises(RuntimeError):
@@ -89,3 +91,20 @@ def test_repr_hides_password() -> None:
     result = Result("rahasia123", 60.0)
     assert "rahasia123" not in repr(result)
     assert result.strength == "cukup"
+
+
+def test_exclude_ambiguous_never_emits_ambiguous_chars() -> None:
+    rng = seeded()
+    for _ in range(300):
+        value = random_password(30, exclude_ambiguous=True, rng=rng).value
+        assert not set(value) & AMBIGUOUS
+
+
+def test_exclude_ambiguous_entropy_uses_reduced_class_sizes() -> None:
+    # 26-2 (o, l), 26-2 (O, I), 10-2 (0, 1), 32-1 (|)
+    result = random_password(20, exclude_ambiguous=True, rng=seeded())
+    assert result.entropy_bits == pytest.approx(
+        entropy.rule_constrained_entropy([24, 24, 8, 31], 20)
+    )
+    full = random_password(20, rng=seeded())
+    assert result.entropy_bits < full.entropy_bits

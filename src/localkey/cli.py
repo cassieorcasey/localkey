@@ -33,6 +33,11 @@ def build_parser() -> argparse.ArgumentParser:
     rand.add_argument("--no-digits", action="store_true")
     rand.add_argument("--no-symbols", action="store_true")
     rand.add_argument(
+        "--exclude-ambiguous",
+        action="store_true",
+        help="buang karakter yang mudah tertukar: 0 O o 1 l I |",
+    )
+    rand.add_argument(
         "--no-require",
         action="store_true",
         help="jangan wajibkan minimal satu karakter per jenis",
@@ -52,6 +57,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             digits=not args.no_digits,
             symbols=not args.no_symbols,
             require_each=not args.no_require,
+            exclude_ambiguous=args.exclude_ambiguous,
         )
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)

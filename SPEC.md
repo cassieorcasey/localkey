@@ -82,6 +82,21 @@ where `N` is the total alphabet size. All arithmetic uses Python integers, so th
 | `-l`, `--length` | password length |
 | `--no-lower`, `--no-upper`, `--no-digits`, `--no-symbols` | disable one character set |
 | `--no-require` | do not require one character from each set |
+| `--exclude-ambiguous` | drop characters that are easy to misread: `0 O o 1 l I \|` |
+
+### Ambiguous characters
+
+`--exclude-ambiguous` removes `0 O o 1 l I |` from every set before drawing. The sets shrink to 24, 24, 8, and 31 characters (87 total). Entropy is computed from the reduced sizes, so a 20-character password loses about 2.2 bits compared with the full set.
+
+## Testing randomness (implemented)
+
+`tests/test_uniformity.py` runs a chi-square goodness-of-fit test on 100,000 draws. The null hypothesis is that every character has probability 1/k. A p-value below 0.001 counts as evidence of bias.
+
+- Two deterministic tests run with every `pytest` call. A seeded uniform source must pass, and a source with a 2% bias toward one character must fail. Together they show the test can tell the difference.
+- Two tests marked `statistical` use real OS randomness: `secrets.choice` directly, and `random_password` with `require_each=False`. They can fail by chance about 0.1% of the time, so they are excluded by default. Run them with `pytest -m statistical`.
+- `scripts/check_uniformity.py` prints the full numbers.
+
+`random_password` with the site rule on is expected to fail a per-character chi-square test. That is not a weakness: see "Why the site rule fails the chi-square test" in EXPLAIN.md.
 
 ## Mode: `phrase` (planned)
 
@@ -156,7 +171,9 @@ src/localkey/
   generators.py  password generators, the only place randomness happens
   cli.py         argument parsing and output
 tests/
-scripts/         (planned) build_wordlist.py
+scripts/
+  check_uniformity.py  chi-square report
+  build_wordlist.py    (planned)
 ```
 
 ## Roadmap

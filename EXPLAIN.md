@@ -20,6 +20,8 @@ localkey/
 ├── README.md
 ├── SPEC.md
 ├── EXPLAIN.md
+├── scripts/
+│   └── check_uniformity.py
 ├── src/localkey/
 │   ├── __init__.py
 │   ├── __main__.py
@@ -29,7 +31,8 @@ localkey/
 └── tests/
     ├── test_entropy.py
     ├── test_generators.py
-    └── test_cli.py
+    ├── test_cli.py
+    └── test_uniformity.py
 ```
 
 The code lives under `src/` on purpose. Without it, Python can import the package straight from the project folder instead of the installed copy, and tests may pass against code that would break once installed. With the src layout, tests always run against the installed package.
@@ -89,6 +92,8 @@ All randomness in the project happens in this file.
 
 `LOWERCASE` (26), `UPPERCASE` (26), `DIGITS` (10), and `SYMBOLS` (32) come from Python's `string` module rather than hand-typed strings, which rules out typos.
 
+`AMBIGUOUS` is a frozenset of `0 O o 1 l I |`. With `exclude_ambiguous=True`, `_without_ambiguous()` strips them from each set before anything else happens. Every later step, including the entropy calculation, sees the smaller sets, so no extra math is needed. `valid_count` stays correct because the sets are still disjoint.
+
 ### `RandomSource`
 
 A `Protocol` that only requires a `choice()` method. Two objects satisfy it:
@@ -108,7 +113,7 @@ A frozen dataclass with `value` and `entropy_bits`.
 
 ### `random_password()`
 
-1. Collect the enabled character sets.
+1. Collect the enabled character sets, and strip ambiguous characters if asked.
 2. Validate the input. At least one set must be enabled, the length must be at least 1, and when every set is required the length must be at least the number of sets. Four sets cannot fit in three characters.
 3. Join the sets into one alphabet.
 4. Run rejection sampling: build a full random candidate, check that every set appears, and start over if one is missing. `max_attempts` caps the loop so it cannot run forever.
@@ -156,7 +161,7 @@ Without the rule, 16 characters would give 104.9 bits. Requiring every set costs
 
 ## Tests
 
-There are 29 tests.
+There are 34 tests in the default run, plus 2 statistical tests that run only on request.
 
 ### `test_entropy.py`
 
@@ -184,6 +189,34 @@ There are 29 tests.
 - 8 characters (51.3 bits) are rejected with exit code 1.
 - 10 characters (about 65 bits) pass by default and fail with `--strict`.
 - Length 0 returns exit code 2.
+- `--exclude-ambiguous` never prints an ambiguous character.
+
+### `test_uniformity.py`
+
+A chi-square goodness-of-fit test checks whether every character shows up equally often.
+
+The statistic is `sum((observed - expected)^2 / expected)` over all k characters, with `expected = n / k`. With 100,000 draws and 94 characters, each character is expected about 1,063.8 times. The test has k - 1 = 93 degrees of freedom. The p-value is the probability of seeing a deviation at least this large if the source really is uniform. LocalKey flags bias when p < 0.001.
+
+The file has four tests:
+
+- A seeded `random.Random` source must pass. The seed is fixed, so this test never flips.
+- A source that forces "a" on 2% of draws must fail. This proves the test can detect a small bias. A test that never fails proves nothing.
+- `secrets.choice` on 100,000 draws must pass. Marked `statistical`.
+- `random_password(20, require_each=False)`, 5,000 times, must pass. Marked `statistical`.
+
+Tests marked `statistical` use real randomness, so they fail by pure chance at a rate equal to alpha (0.1%). `pyproject.toml` excludes them from the default run with `-m 'not statistical'`. Run them with `pytest -m statistical`.
+
+### Why the site rule fails the chi-square test
+
+Running `scripts/check_uniformity.py` shows `random_password` with `require_each=True` failing the test, with digits appearing more often than letters. This is expected.
+
+Rejection sampling discards every candidate that lacks a digit. Digits are only 10 of 94 characters, so the candidates that survive contain more digits on average than a plain random string. Per-character frequency is therefore not uniform.
+
+What matters for security is a different property: every valid password is equally likely. That holds, because each candidate string is equally likely before the filter and the filter keeps or drops whole strings. The attacker's best strategy is to guess among `valid_count` equally likely passwords, and `log2(valid_count)` is exactly the entropy LocalKey reports.
+
+## `scripts/check_uniformity.py`
+
+Prints the chi-square numbers for three sources: `secrets.choice`, `random_password` without the site rule, and `random_password` with it. Options: `--samples N` and `--exclude-ambiguous`.
 
 ## Development commands
 
@@ -191,6 +224,7 @@ There are 29 tests.
 |---|---|
 | `pytest` | run the tests |
 | `pytest --cov=localkey` | run the tests with a coverage report |
+| `pytest -m statistical` | run the chi-square tests that use real randomness |
 | `ruff check .` | lint for common bugs and style problems |
 | `ruff format .` | format the code |
 | `mypy src` | type-check against the type hints |
