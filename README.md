@@ -158,7 +158,7 @@ web/
 
 ## Web demo
 
-A small web version runs in the browser: **[live demo](https://USERNAME.github.io/localkey/)** (English and Indonesian).
+A small web version runs in the browser: **[live demo](https://cassieorcasey.github.io/localkey/)** (English and Indonesian).
 
 It is not a rewrite in JavaScript. The page loads [Pyodide](https://pyodide.org), which is CPython compiled to WebAssembly, and runs the same `entropy.py` and `generators.py` the tests cover. Python's `secrets` module reads from the browser's `crypto.getRandomValues`. There is no server: the password is created on your device and never leaves it. The first visit downloads about 10 MB for the Python runtime; after that the browser caches it.
 
