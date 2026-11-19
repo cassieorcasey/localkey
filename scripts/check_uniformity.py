@@ -9,9 +9,18 @@ from __future__ import annotations
 
 import argparse
 import secrets
+import sys
 from collections import Counter
 
-from scipy.stats import chisquare
+try:
+    from scipy.stats import chisquare
+except ImportError:
+    raise SystemExit(
+        "scipy belum terpasang di Python ini.\n"
+        "Aktifkan virtual environment, lalu jalankan: pip install scipy\n"
+        'atau: pip install -e ".[dev]"\n'
+        f"Python yang dipakai: {sys.executable}"
+    ) from None
 
 from localkey.generators import (
     AMBIGUOUS,

@@ -10,7 +10,9 @@ A walkthrough of the code as of version 0.1.0, which ships the `random` mode. Fo
 | Logic | `generators.py` | builds passwords |
 | Interface | `cli.py` | reads terminal arguments and prints results |
 
-Each layer can be tested on its own. A future web or GUI front end could reuse `entropy.py` and `generators.py` unchanged.
+Each layer can be tested on its own, and the interface layer can be swapped.
+
+The web demo in `web/` is the second interface. A browser cannot import Python files, so the page loads Pyodide (CPython compiled to WebAssembly) and runs `entropy.py` and `generators.py` inside it, unchanged. `scripts/build_web.py` copies them into `web/py/`. In the page, `bridge.js` turns form values into a call to `random_password(...)` and reads back `value`, `entropy_bits` and `strength`. It also checks two input errors itself (no character type selected, length below the number of types) so the page can show them in either language without parsing Python's error text. `i18n.js` holds the English and Indonesian strings and maps the core's labels (`lemah`, `cukup`, `kuat`) to display text. No entropy math was rewritten in JavaScript; a Node test checks that the browser gives the same entropy values as CPython, to the last digit.
 
 ## Folder structure
 

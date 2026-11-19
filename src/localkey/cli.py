@@ -1,3 +1,9 @@
+"""Antarmuka baris perintah. Hanya urusan input/output, tanpa logika acak.
+
+Versi ini baru punya subcommand `random`. Mode `phrase` dan `anchor`
+menyusul di tahap 3 dan 4.
+"""
+
 from __future__ import annotations
 
 import argparse

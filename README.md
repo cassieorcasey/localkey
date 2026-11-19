@@ -131,7 +131,7 @@ With the site rule on, per-character frequencies are not uniform: digits appear 
 ## Development
 
 ```bash
-pytest                                  # 34 tests
+pytest                                  # 36 tests
 pytest --cov=localkey                   # with a coverage report
 pytest -m statistical                   # chi-square tests with real randomness
 ruff check . && ruff format --check .
@@ -148,6 +148,33 @@ src/localkey/
 tests/
 scripts/
   check_uniformity.py   prints chi-square results
+  build_web.py          copies the core into web/py/ for the web demo
+web/
+  index.html, app.js, style.css   the demo page
+  bridge.js        passes options to Python and results back
+  i18n.js          English and Indonesian text
+  test/            Node tests
+```
+
+## Web demo
+
+A small web version runs in the browser: **[live demo](https://USERNAME.github.io/localkey/)** (English and Indonesian).
+
+It is not a rewrite in JavaScript. The page loads [Pyodide](https://pyodide.org), which is CPython compiled to WebAssembly, and runs the same `entropy.py` and `generators.py` the tests cover. Python's `secrets` module reads from the browser's `crypto.getRandomValues`. There is no server: the password is created on your device and never leaves it. The first visit downloads about 10 MB for the Python runtime; after that the browser caches it.
+
+The demo covers `random` mode only. It shows weak passwords with a warning label instead of refusing them, so you can see how each setting changes the entropy.
+
+Run it locally:
+
+```bash
+python scripts/build_web.py          # copies the core into web/py/
+python -m http.server -d web 8000    # then open http://localhost:8000
+```
+
+JavaScript tests (Node 20 or newer), run against the real Python core in Pyodide:
+
+```bash
+cd web && npm install && npm test
 ```
 
 ## Documentation

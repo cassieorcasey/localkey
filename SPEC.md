@@ -14,7 +14,26 @@ This file records what LocalKey should do and the decisions behind it. Each sect
 ## Non-goals
 
 - Storing passwords. LocalKey is a generator, not a password manager.
-- A graphical interface. Other front ends can import the library later.
+- A full graphical application. The command line stays the primary interface.
+  A small web demo exists (see below); it is a thin front end over the same
+  core and covers `random` mode only.
+
+## Web demo (implemented)
+
+A static page in `web/`, published with GitHub Pages, in English and Indonesian.
+
+- It runs the real `entropy.py` and `generators.py` in the browser through
+  Pyodide (CPython compiled to WebAssembly). `scripts/build_web.py` copies the
+  two files into `web/py/`, so the browser runs exactly the code the tests cover.
+- Under Pyodide, `secrets.SystemRandom` reads from the browser's
+  `crypto.getRandomValues`. This was checked in headless Chrome before the page
+  was built.
+- Controls: length, the four character classes, `exclude-ambiguous`, and the
+  site rule. Output: password, entropy, strength label.
+- Unlike the CLI, the page shows a weak password instead of refusing it, with
+  the weak label. The page is for exploring how settings change entropy.
+- No backend. After the runtime loads, generating a password makes no network
+  request. The password is never stored or logged.
 
 ## Attacker model
 

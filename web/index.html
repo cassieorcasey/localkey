@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LocalKey web demo</title>
+  <meta name="description" content="LocalKey password generator: Python running in your browser with Pyodide.">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1 data-i18n="title">LocalKey web demo</h1>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="id">ID</button>
+      </div>
+    </header>
+    <p class="tagline" data-i18n="tagline"></p>
+
+    <p id="status" role="status" data-i18n="loading"></p>
+
+    <form id="options" hidden>
+      <label class="length">
+        <span data-i18n="length"></span>
+        <input id="length" type="number" min="1" max="128" value="20" required>
+      </label>
+
+      <fieldset>
+        <label><input type="checkbox" id="lowercase" checked> <span data-i18n="lower"></span></label>
+        <label><input type="checkbox" id="uppercase" checked> <span data-i18n="upper"></span></label>
+        <label><input type="checkbox" id="digits" checked> <span data-i18n="digits"></span></label>
+        <label><input type="checkbox" id="symbols" checked> <span data-i18n="symbols"></span></label>
+      </fieldset>
+
+      <label><input type="checkbox" id="excludeAmbiguous"> <span data-i18n="excludeAmbiguous"></span></label>
+      <label><input type="checkbox" id="requireEach" checked> <span data-i18n="requireEach"></span></label>
+
+      <section class="result" aria-live="polite">
+        <output id="password"></output>
+        <p id="error" class="error" hidden></p>
+        <p id="meter" hidden>
+          <span data-i18n="entropy"></span>: <strong id="bits"></strong>
+          <span data-i18n="bits"></span> · <span id="strength" class="strength"></span>
+        </p>
+        <div class="actions">
+          <button type="submit" data-i18n="generate"></button>
+          <button type="button" id="copy" data-i18n="copy"></button>
+        </div>
+      </section>
+    </form>
+
+    <footer>
+      <p data-i18n="privacyNote"></p>
+      <p><a href="https://github.com/" id="source" data-i18n="source"></a></p>
+    </footer>
+  </main>
+</body>
+</html>
